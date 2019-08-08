@@ -1,0 +1,49 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Script File
+//
+//      File: ExtractME01.1sc
+//   Authors: EntranceJew
+//   Version: 1.0.0
+//   Purpose: Extract the contents of ME01 archives
+//  Category: Utility
+//   History: 
+//------------------------------------------------
+string filePath = InputDirectory( "Pick Extraction Path");
+int currentFile = GetFileNum();
+int i;
+string newFile;
+string newPath;
+int64 pos;
+int64 len;
+char buffer[2147483647];
+int fileNew;
+
+if(filePath != ""){
+    for(i = 0; i < file.fileCount; i++){
+        newFile = filePath + file.fileEntries[i].fileInfo.fileName;
+        newPath = FileNameGetPath(newFile, true);
+        if( MakeDir(newPath) ){
+            if( !FileExists(newFile) ){
+                pos = startof(file.fileEntries[i].blob);
+                len = sizeof(file.fileEntries[i].blob);
+                
+                if( len > sizeof(buffer) ){
+                    Warning("File '%s' is larger (0x%LX) than implemented buffer length (0x%LX), multple reads not implemented. Contact EntranceJew if this happens.", newFile, len, sizeof(buffer));
+                }
+                ReadBytes(buffer, pos, len);
+                fileNew = FileNew("Hex", true);
+                WriteBytes(buffer,0,len);
+                FileSave(newFile);
+                FileClose();
+                FileSelect(currentFile);
+            } else {
+                Warning("File '%s' already exists, overwrite not implemented. Delete to re-export or select a new output directory.", newFile);
+            }
+            // int fileOpen = FileOpen(newPath, false, "Hex", false );
+        } else {
+            Warning("Directory '%s' could not be created or does not exist, check parent folder permissions and re-export.", newPath);
+        }
+    }
+} else {
+        Warning("You must select an export destination to begin. Preferably, an empty or new folder.");
+}
